@@ -1,0 +1,47 @@
+# mitmproxy 抓包（大文件，可能含敏感 cookies/tokens）
+/flows
+flows.gz
+flows_*/
+*.har
+*_har
+
+# PayPal Camoufox 持久化 profile（含 session cookies）
+CTF-pay/paypal_cf_persist/
+CTF-pay/paypal_cf_persist.bak-*/
+CTF-pay/paypal_cf_persist.bak_*/
+
+# 运行时产物（账号凭证 / 支付结果 / 日志 / 域池状态 / CF API token）
+output/
+
+# 用户实际配置（保留 *.example.json，忽略实际填写过的）
+CTF-pay/config.paypal.json
+CTF-pay/config.paypal-*.json
+CTF-reg/config.paypal-proxy.json
+CTF-reg/config.paypal-proxy-*.json
+CTF-reg/config.noproxy.json
+
+# pipeline 注册临时 config（运行时产物）
+CTF-pay/pipeline_pay_*.json
+CTF-reg/pipeline_cardw_*.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 备份
+*.bak_*
+*.bak-*
+
+# IDE / 工具
+.vscode/
+.idea/
+.serena/
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 测试期临时数据
+test_*.py
+!test_rt.py.example

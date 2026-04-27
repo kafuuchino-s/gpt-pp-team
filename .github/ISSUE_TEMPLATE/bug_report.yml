@@ -1,0 +1,74 @@
+name: Bug 报告
+description: 工具集自己有问题（不包括"Stripe 把我卡封了"这类）
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交之前先看下：
+
+        - **账号被封、IP 被打标、PayPal 拒收** —— 这是预期，看 [反欺诈实证](https://github.com/DanOps-1/gpt-pp-team#-反欺诈实证)。别提 issue
+        - **怀疑是安全漏洞**（凭证泄露、注入之类）—— 看 [`SECURITY.md`](https://github.com/DanOps-1/gpt-pp-team/blob/main/SECURITY.md)，别公开提
+        - **针对未授权目标使用** —— 别提 issue，并请停下
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 出了什么问题？
+      description: 你跑了什么命令，挂在哪？
+      placeholder: |
+        跑了 `xvfb-run -a python pipeline.py --config CTF-pay/config.paypal.json --paypal`
+        在 [B6] 阶段挂了，报 "DataDome slider not detected"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+      placeholder: pipeline 应该解开滑块继续到 redirect 步骤
+    validations:
+      required: true
+
+  - type: input
+    id: stage
+    attributes:
+      label: 挂在哪个阶段
+      description: 哪个 pipeline 阶段挂的？(`registration` / `Stripe confirm` / `PayPal B-DDC` / `OAuth callback` / `daemon loop` 之类)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志
+      description: `output/logs/card.log` 最后 30–50 行。**贴之前先脱敏**：token、cookie、真实邮箱、IP、PII 全打码
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: 运行环境
+      placeholder: |
+        - OS: Kali Linux 2026.1
+        - Python: 3.11.7
+        - playwright: 1.44.0
+        - camoufox: 0.4.1
+        - 模式: daemon / 单次 / 批量 / self-dealer
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: 确认
+      options:
+        - label: 我针对的是自己拥有或有明确书面授权的系统
+          required: true
+        - label: 本 issue 里的日志 / 截图已经脱敏（凭证、cookie、PII）
+          required: true
+        - label: 我搜过现有 issue，没重复
+          required: true

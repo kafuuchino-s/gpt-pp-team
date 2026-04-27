@@ -1,0 +1,118 @@
+{
+  "team_system": {
+    "enabled": false,
+    "base_url": "http://127.0.0.1:3000",
+    "username": "admin",
+    "password": "YOUR_TEAM_SYSTEM_PASSWORD",
+    "timeout_s": 60,
+    "domain_cooldown_hours": 24
+  },
+  "daemon": {
+    "target_ok_accounts": 20,
+    "usage_pool": "recovery",
+    "poll_interval_s": 600,
+    "rate_limit": {
+      "per_hour": 0,
+      "per_day": 0
+    },
+    "max_consecutive_failures": 5,
+    "consecutive_fail_cooldown_s": 1800,
+    "jitter_before_run_s": [60, 180],
+    "seat_limit": 5
+  },
+  "proxies": {
+    "enabled": false,
+    "rotation": "random",
+    "list": []
+  },
+  "randomize_identity": true,
+  "pre_solve_passive_captcha": false,
+  "browser_challenge": {
+    "enabled": true,
+    "auto_launch_browser": false,
+    "headless": false,
+    "timeout_ms": 1800000,
+    "auto_click_checkbox": true
+  },
+  "cards": [
+    {
+      "number": "4242424242424242",
+      "cvc": "123",
+      "exp_month": "12",
+      "exp_year": "2030",
+      "address": {
+        "country": "US",
+        "line1": "1 Example Street",
+        "city": "San Francisco",
+        "postal_code": "94105",
+        "state": "CA"
+      },
+      "name": "JOHN DOE",
+      "email": "tester@example.com"
+    }
+  ],
+  "paypal": {
+    "email": "you@example.com",
+    "password": "YOUR_PAYPAL_PASSWORD",
+    "imap_server": "imap.example.com",
+    "imap_port": 993,
+    "imap_email": "you@example.com",
+    "imap_auth_code": "YOUR_IMAP_AUTH_CODE",
+    "cookies": ""
+  },
+  "captcha": {
+    "api_url": "https://YOUR_CAPTCHA_PROVIDER",
+    "api_key": "YOUR_CAPTCHA_API_KEY"
+  },
+  "fresh_checkout": {
+    "enabled": true,
+    "bootstrap_from_flows": false,
+    "flows_path": "../flows",
+    "auto_refresh_on_inactive": true,
+    "warmup_route_data": true,
+    "plan": {
+      "workspace_name": "MyWorkspace",
+      "price_interval": "month",
+      "seat_quantity": 5,
+      "billing_country": "IE",
+      "billing_currency": "EUR",
+      "promo_campaign_id": "team-1-month-free",
+      "checkout_ui_mode": "custom",
+      "cancel_url": "https://chatgpt.com/#pricing",
+      "plan_name": "chatgptteamplan",
+      "payment_lower_bound_amount_cents": 0,
+      "payment_upper_bound_amount_cents": 100000
+    },
+    "auth": {
+      "cookie_header": "",
+      "access_token": "",
+      "oai_device_id": "",
+      "openai_sentinel_token": "",
+      "mode": "auto_register",
+      "session_token": "",
+      "device_id": "",
+      "prefer_session_refresh": true,
+      "auto_register": {
+        "enabled": true,
+        "project_dir": "./CTF-reg",
+        "config_path": "./CTF-reg/config.paypal-proxy.example.json",
+        "use_ctf_proxy": true,
+        "retry_on_auth_error": true,
+        "persist_to": "/tmp/ctf_last_paypal_auth.json"
+      }
+    },
+    "request_style": "modern",
+    "use_flows_for_templates": false
+  },
+  "locale": "US",
+  "runtime": {
+    "confirm_mode": "shared_payment_method",
+    "version": "fed52f3bc6",
+    "js_checksum": "FILL_FROM_CURRENT_STRIPE_CHECKOUT",
+    "rv_timestamp": "FILL_FROM_CURRENT_STRIPE_CHECKOUT",
+    "top_checkout_config_id": "",
+    "payment_method_checkout_config_id": "",
+    "frontend_execution": ""
+  },
+  "proxy": "socks5://USER:PASS@PROXY_HOST:PORT"
+}

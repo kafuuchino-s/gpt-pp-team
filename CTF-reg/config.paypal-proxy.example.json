@@ -1,0 +1,58 @@
+{
+  "mail": {
+    "imap_server": "imap.example.com",
+    "imap_port": 993,
+    "smtp_server": "smtp.example.com",
+    "smtp_port": 465,
+    "email": "you@example.com",
+    "auth_code": "YOUR_IMAP_AUTH_CODE",
+    "catch_all_domain": "subdomain.example.com",
+    "catch_all_domains": [
+      "subdomain.example.com"
+    ],
+    "auto_provision": {
+      "enabled": false,
+      "zone_name": "example.com",
+      "min_available": 3,
+      "min_segs": 1,
+      "max_segs": 4,
+      "min_seg_len": 2,
+      "max_seg_len": 5,
+      "dns_propagation_s": 20
+    }
+  },
+  "card": {
+    "number": "4242424242424242",
+    "cvc": "123",
+    "exp_month": "12",
+    "exp_year": "2030"
+  },
+  "billing": {
+    "name": "JOHN DOE",
+    "email": "",
+    "country": "US",
+    "currency": "USD",
+    "address_line1": "1 Example Street",
+    "address_state": "CA",
+    "postal_code": "94105",
+    "address_city": "San Francisco",
+    "address_line2": ""
+  },
+  "team_plan": {
+    "plan_name": "chatgptteamplan",
+    "workspace_name": "MyWorkspace",
+    "price_interval": "month",
+    "seat_quantity": 5,
+    "promo_campaign_id": "team-1-month-free"
+  },
+  "captcha": {
+    "api_url": "https://YOUR_CAPTCHA_PROVIDER",
+    "client_key": "YOUR_CAPTCHA_API_KEY"
+  },
+  "proxy": "socks5://USER:PASS@PROXY_HOST:PORT",
+  "session_token": "",
+  "access_token": "",
+  "device_id": "",
+  "stripe_build_hash": "",
+  "code_system_enabled": false
+}

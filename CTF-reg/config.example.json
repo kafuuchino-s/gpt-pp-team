@@ -1,0 +1,45 @@
+{
+  "mail": {
+    "imap_server": "imap.qq.com",
+    "imap_port": 993,
+    "smtp_server": "smtp.qq.com",
+    "smtp_port": 465,
+    "email": "you@example.com",
+    "auth_code": "YOUR_IMAP_AUTH_CODE",
+    "catch_all_domain": "example.com"
+  },
+  "card": {
+    "number": "",
+    "cvc": "",
+    "exp_month": "",
+    "exp_year": ""
+  },
+  "billing": {
+    "name": "John Smith",
+    "email": "",
+    "country": "US",
+    "currency": "USD",
+    "address_line1": "123 Main St",
+    "address_line2": "",
+    "address_city": "San Francisco",
+    "address_state": "CA",
+    "postal_code": "94105"
+  },
+  "team_plan": {
+    "plan_name": "chatgptteamplan",
+    "workspace_name": "MyWorkspace",
+    "price_interval": "month",
+    "seat_quantity": 5,
+    "promo_campaign_id": "team-1-month-free"
+  },
+  "captcha": {
+    "api_url": "https://YOUR_CAPTCHA_PROVIDER",
+    "client_key": ""
+  },
+  "proxy": null,
+  "session_token": null,
+  "access_token": null,
+  "device_id": null,
+  "stripe_build_hash": "f197c9c0f0",
+  "code_system_enabled": false
+}

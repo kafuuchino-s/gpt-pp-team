@@ -1,0 +1,64 @@
+{
+  "randomize_identity": true,
+  "pre_solve_passive_captcha": false,
+  "browser_challenge": {
+    "enabled": false
+  },
+  "cards": [
+    {
+      "number": "5555555555554444",
+      "exp_month": "01",
+      "exp_year": "2030",
+      "cvc": "123",
+      "name": "",
+      "email": "",
+      "address": {
+        "line1": "1 Example Street",
+        "city": "San Francisco",
+        "state": "CA",
+        "postal_code": "94105",
+        "country": "US"
+      }
+    }
+  ],
+  "captcha": {
+    "api_url": "https://YOUR_CAPTCHA_PROVIDER",
+    "api_key": ""
+  },
+  "fresh_checkout": {
+    "enabled": true,
+    "bootstrap_from_flows": true,
+    "flows_path": "../flows",
+    "plan": {
+      "entry_point": "team_workspace_purchase_modal",
+      "plan_name": "chatgptteamplan",
+      "workspace_name": "MyWorkspace",
+      "price_interval": "month",
+      "seat_quantity": 5,
+      "billing_country": "US",
+      "billing_currency": "USD",
+      "cancel_url": "https://chatgpt.com/#pricing",
+      "checkout_ui_mode": "custom",
+      "promo_campaign_id": "team-1-month-free",
+      "is_coupon_from_query_param": false
+    }
+  },
+  "locale": "US",
+  "runtime": {},
+  "proxy": null,
+  "offline_replay": {
+    "enabled": true,
+    "flows_path": "../flows",
+    "scenario": "challenge_pass_then_decline",
+    "artifact_path": "/tmp/ctf_offline_replay_latest.json",
+    "terminal_result": {
+      "source_kind": "setup_intent",
+      "payment_object_status": "requires_payment_method",
+      "error": {
+        "code": "card_declined",
+        "decline_code": "generic_decline",
+        "message": "Your card was declined."
+      }
+    }
+  }
+}

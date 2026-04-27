@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install lint tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Ruff (real errors only — syntax + undefined names)
+        # E9 = syntax errors; F63/F7 = misuse; F82 = undefined name.
+        # 这些是真 error，CI 必须挂；warnings 不阻塞。
+        run: ruff check --select=E9,F63,F7,F82 --no-fix .
+
+      - name: Ruff (warnings, non-blocking, GitHub annotations)
+        run: ruff check --output-format=github . || true
+
+  syntax:
+    name: Python syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile all Python files
+        run: |
+          python -m compileall -q pipeline.py CTF-pay/ CTF-reg/
+
+  json-schema:
+    name: Example configs are valid JSON
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate every example config
+        run: |
+          for f in CTF-pay/config*.json CTF-reg/config*.json; do
+            echo "Validating $f"
+            python -c "import json; json.load(open('$f'))"
+          done
+
+  secret-scan:
+    name: Sensitive-string sweep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for known leaked patterns
+        run: |
+          # 拼接 pattern 避免本文件自匹配
+          PAT="$(printf '%s\n' \
+            "Wind""omere" \
+            "Ellw""ood" \
+            "elym""xenk" \
+            "46e6""3e3c" \
+            "Incog""User" \
+            "sqAD""KR0PZ6" \
+            "sk-cli""proxy" | paste -sd '|')"
+          if grep -rEn "$PAT" \
+            --include="*.py" --include="*.json" --include="*.md" \
+            --exclude-dir=".git" .; then
+            echo "::error::Found previously-redacted sensitive string"
+            exit 1
+          fi
+          echo "Clean."
+
+      - name: Scan for absolute /home paths
+        run: |
+          if grep -rEn \
+            "/home/(kali|root|ubuntu)/(gpt-mitm|gpt-team|\.venvs/ctfml)" \
+            --include="*.py" --include="*.json" --include="*.md" \
+            --exclude-dir=".git" .; then
+            echo "::error::Found hardcoded absolute path that should be relative"
+            exit 1
+          fi
+          echo "Clean."

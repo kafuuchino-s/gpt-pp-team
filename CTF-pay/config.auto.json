@@ -1,0 +1,86 @@
+{
+  "randomize_identity": false,
+  "pre_solve_passive_captcha": false,
+  "browser_challenge": {
+    "enabled": true,
+    "auto_launch_browser": false,
+    "headless": false,
+    "timeout_ms": 1800000,
+    "auto_click_checkbox": true
+  },
+  "cards": [
+    {
+      "number": "4242424242424242",
+      "cvc": "123",
+      "exp_month": "12",
+      "exp_year": "2030",
+      "address": {
+        "country": "US",
+        "line1": "1 Example Street",
+        "city": "San Francisco",
+        "postal_code": "94105",
+        "state": "CA"
+      },
+      "name": "JOHN DOE",
+      "email": "tester@example.com"
+    }
+  ],
+  "captcha": {
+    "api_url": "https://YOUR_CAPTCHA_PROVIDER",
+    "api_key": "YOUR_CAPTCHA_API_KEY"
+  },
+  "fresh_checkout": {
+    "enabled": true,
+    "bootstrap_from_flows": false,
+    "flows_path": "../flows",
+    "auto_refresh_on_inactive": true,
+    "warmup_route_data": true,
+    "plan": {
+      "workspace_name": "MyWorkspace",
+      "price_interval": "month",
+      "seat_quantity": 5,
+      "billing_country": "US",
+      "billing_currency": "USD",
+      "promo_campaign_id": "team-1-month-free",
+      "checkout_ui_mode": "custom",
+      "cancel_url": "https://chatgpt.com/#pricing",
+      "plan_name": "chatgptteamplan",
+      "payment_lower_bound_amount_cents": 0,
+      "payment_upper_bound_amount_cents": 100000
+    },
+    "auth": {
+      "cookie_header": "",
+      "access_token": "",
+      "oai_device_id": "",
+      "openai_sentinel_token": "",
+      "mode": "access_token",
+      "session_token": "",
+      "device_id": "",
+      "prefer_session_refresh": true,
+      "auto_register": {
+        "enabled": false,
+        "project_dir": "./CTF-reg",
+        "config_path": "./CTF-reg/config.example.json",
+        "use_ctf_proxy": true,
+        "retry_on_auth_error": true,
+        "persist_to": "/tmp/ctf_last_openai_auth.json"
+      }
+    },
+    "request_style": "abcard",
+    "use_flows_for_templates": false
+  },
+  "locale": "US",
+  "runtime": {
+    "confirm_mode": "inline_payment_method_data",
+    "version": "6f8494a281",
+    "js_checksum": "qto~d^n0=QU>a<eRUrbu]]_QUT^`@=l`<cdbovabT=qPsyn;YZato?U^`w",
+    "rv_timestamp": "qto>n<Q=U&CyY&`>X^r<YNr<YN`<Y_C<Y_C<Y^`zY_`<Y^n{U>o&U&CyX=XDX_#$eOnDYOerYbn;X=ouXO<ud=d%Y_#%X_ovXO#<XxMvYOUxYNn{U>e&U&CyeO##X&Ur[_d<Y_Msd=L=Xxn=d&;>d_;%eu$xeO<vX=]xYxX%Xx\\=eO]x[RXDY&X%d_#DYbn%dRP=e=\\#X&PC[^o?U^`w",
+    "top_checkout_config_id": "",
+    "payment_method_checkout_config_id": "",
+    "frontend_execution": ""
+  },
+  "proxy": {
+    "host": "127.0.0.1",
+    "port": 18080
+  }
+}
