@@ -65,7 +65,25 @@ flowchart LR
 
 ## 上手
 
-> 💡 **新手友好**：跑 `python -m webui.server` 起配置向导，点点鼠标 ~15 分钟生成两份 config。详见 [`webui/README.md`](webui/README.md)。
+### 新手路径：webui 配置向导（推荐）
+
+把 1–3 小时的手动调配压到 ~15 分钟。14 步 wizard + 实时 preflight 自检 + 内置运行控制器（SSE 日志流），生成 `CTF-pay/config.auto.json` + `CTF-reg/config.paypal-proxy.json` 两份配置。
+
+![webui 截图](docs/images/webui.png)
+
+```bash
+# 1. 后端依赖
+pip install -r webui/requirements.txt
+
+# 2. 前端构建（一次性）
+cd webui/frontend && pnpm i && pnpm build && cd ../..
+
+# 3. 启动
+python -m webui.server
+# 浏览器打开 http://127.0.0.1:8765 ，首次访问跳 /setup 建管理员
+```
+
+支持 Plus 和 Team 双订阅路径，公网访问通过 nginx 反代见 [`webui/README.md`](webui/README.md)。
 
 ### 装
 
