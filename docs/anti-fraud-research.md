@@ -267,7 +267,7 @@ ORDER BY 1 DESC, 2 DESC;
 
 ```
 Gpt-Agreement-Payment — 反欺诈实证研究. (2026).
-https://github.com/DanOps-1/gpt-pp-team/blob/main/docs/anti-fraud-research.md
+https://github.com/DanOps-1/Gpt-Agreement-Payment/blob/main/docs/anti-fraud-research.md
 ```
 
 或者 BibTeX：
@@ -277,7 +277,7 @@ https://github.com/DanOps-1/gpt-pp-team/blob/main/docs/anti-fraud-research.md
   title  = {Empirical Anti-Fraud Research on ChatGPT Team Subscription},
   author = {Gpt-Agreement-Payment contributors},
   year   = {2026},
-  howpublished = {\url{https://github.com/DanOps-1/gpt-pp-team}},
+  howpublished = {\url{https://github.com/DanOps-1/Gpt-Agreement-Payment}},
   note   = {Licensed under MIT, IP addresses use RFC 5737 placeholders}
 }
 ```
