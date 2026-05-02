@@ -9,13 +9,15 @@ from typing import Optional
 
 @dataclass
 class MailConfig:
-    """邮箱服务配置 (IMAP/SMTP)"""
-    imap_server: str = ""
-    imap_port: int = 993
-    smtp_server: str = ""
-    smtp_port: int = 465
-    email: str = ""
-    auth_code: str = ""
+    """邮箱服务配置（CF Email Worker → KV 路径）。
+
+    OTP 走 Cloudflare Email Routing → otp-relay Worker → KV。原 IMAP/SMTP
+    字段（imap_server/imap_port/smtp_*/email/auth_code）已彻底废弃；旧
+    config 文件里残留这些字段会被 Config.from_file 静默忽略。
+
+    KV 凭证（api_token / account_id / kv_namespace_id）放 output/secrets.json
+    的 cloudflare 段或环境变量，不在 MailConfig 里。
+    """
     catch_all_domain: str = ""
     # 域名池：pipeline 运行时从中挑一个作为 catch_all_domain（轮换 + 根据 invite 探测结果烧掉）
     catch_all_domains: list = field(default_factory=list)
@@ -87,11 +89,17 @@ class Config:
     @classmethod
     def from_file(cls, path: str) -> "Config":
         """从 JSON 文件加载配置"""
+        import dataclasses
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         cfg = cls()
         if "mail" in data:
-            cfg.mail = MailConfig(**data["mail"])
+            # 过滤已废弃的 IMAP/SMTP 字段（imap_server, imap_port, smtp_*,
+            # email, auth_code），让旧 config 仍然能跑而不抛 unexpected
+            # keyword 错。新代码请只配 catch_all_domain(s) + auto_provision。
+            valid_keys = {f.name for f in dataclasses.fields(MailConfig)}
+            mail_data = {k: v for k, v in (data["mail"] or {}).items() if k in valid_keys}
+            cfg.mail = MailConfig(**mail_data)
         if "card" in data:
             cfg.card = CardInfo(**data["card"])
         if "billing" in data:

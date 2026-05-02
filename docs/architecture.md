@@ -34,7 +34,8 @@ Gpt-Agreement-Payment/
 │   ├── browser_register.py         # Camoufox 真浏览器注册
 │   ├── auth_flow.py                # 纯 HTTP 注册（备用）
 │   ├── sentinel.py                 # OpenAI Sentinel PoW token
-│   ├── mail_provider.py            # IMAP catch-all 取 OTP
+│   ├── mail_provider.py            # 生成 catch-all 邮箱 + 委托 cf_kv_otp_provider 取 OTP
+│   ├── cf_kv_otp_provider.py       # 从 Cloudflare KV 读 OTP（worker 写入）
 │   ├── http_client.py              # curl_cffi / requests 工厂
 │   └── config.py                   # dataclass 配置定义
 ├── docs/                           # 详细文档
@@ -91,7 +92,8 @@ Gpt-Agreement-Payment/
 | `browser_register.py` | Camoufox 真浏览器注册主路径，过 Cloudflare Turnstile |
 | `auth_flow.py` | 纯 HTTP 注册路径，备用（覆盖率不全） |
 | `sentinel.py` | OpenAI Sentinel PoW token 生成（浏览器指纹模拟 + SHA-3） |
-| `mail_provider.py` | IMAP catch-all 取注册 / 登录 OTP |
+| `mail_provider.py` | catch-all 邮箱生成 + 委托 KV 取 OTP |
+| `cf_kv_otp_provider.py` | 从 CF KV 读 worker 写入的 OTP（替代 IMAP） |
 | `http_client.py` | HTTP 客户端工厂，优先 curl_cffi 做 TLS 指纹 |
 | `config.py` | dataclass 配置定义 |
 
@@ -161,7 +163,7 @@ GET https://auth.openai.com/oauth/authorize
 走流程：
 
 1. 填邮箱 + 密码
-2. 可能触发 IMAP OTP（轮询登录码邮件）
+2. 可能触发邮箱 OTP（CF Email Worker → KV，毫秒级落库）
 3. Codex consent 页点 Continue
 4. Playwright route 拦 `localhost:1455` callback，提取 `code`
 5. POST `/oauth/token` with `code_verifier` → 拿到 `refresh_token`

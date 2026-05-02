@@ -9,6 +9,7 @@ from .backend.routes import preflight as preflight_routes
 from .backend.routes import sniff as sniff_routes
 from .backend.routes import config as config_routes
 from .backend.routes import run as run_routes
+from .backend.routes import cloudflare_kv as cf_kv_routes
 
 
 FRONTEND_DIST = Path(__file__).parent / "frontend" / "dist"
@@ -23,6 +24,7 @@ def create_app() -> FastAPI:
     app.include_router(sniff_routes.router)
     app.include_router(config_routes.router)
     app.include_router(run_routes.router)
+    app.include_router(cf_kv_routes.router)
 
     @app.get("/api/healthz")
     def healthz():

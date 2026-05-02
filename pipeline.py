@@ -585,7 +585,7 @@ from mail_provider import MailProvider
 from browser_register import browser_register
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
 cfg = Config.from_file(config_path)
-mail = MailProvider(cfg.mail.imap_server, cfg.mail.imap_port, cfg.mail.email, cfg.mail.auth_code, cfg.mail.catch_all_domain)
+mail = MailProvider(cfg.mail.catch_all_domain)
 result = browser_register(cfg, mail)
 print("LOCALAUTH_RESULT_JSON=" + json.dumps(result, ensure_ascii=False), flush=True)
 """
@@ -600,7 +600,7 @@ from auth_flow import AuthFlow
 from mail_provider import MailProvider
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
 cfg = Config.from_file(config_path)
-mail = MailProvider(cfg.mail.imap_server, cfg.mail.imap_port, cfg.mail.email, cfg.mail.auth_code, cfg.mail.catch_all_domain)
+mail = MailProvider(cfg.mail.catch_all_domain)
 flow = AuthFlow(cfg)
 result = flow.run_register(mail)
 print("LOCALAUTH_RESULT_JSON=" + json.dumps(result.to_dict(), ensure_ascii=False), flush=True)

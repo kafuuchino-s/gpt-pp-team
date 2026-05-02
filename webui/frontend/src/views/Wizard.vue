@@ -60,7 +60,7 @@ import { api } from "../api/client";
 import Step01 from "../components/steps/Step01_Welcome.vue";
 import Step02 from "../components/steps/Step02_System.vue";
 import Step03 from "../components/steps/Step03_Cloudflare.vue";
-import Step04 from "../components/steps/Step04_IMAP.vue";
+import Step04 from "../components/steps/Step04_CloudflareKV.vue";
 import Step05 from "../components/steps/Step05_Proxy.vue";
 import Step06 from "../components/steps/Step06_PayPal.vue";
 import Step06GoPay from "../components/steps/Step06_GoPay.vue";

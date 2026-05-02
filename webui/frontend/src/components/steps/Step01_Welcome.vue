@@ -31,7 +31,7 @@ const modeOptions = [
 ];
 
 const paymentOptions = [
-  { value: "paypal", label: "PayPal", desc: "PayPal 余额支付 · 需账号 + IMAP" },
+  { value: "paypal", label: "PayPal", desc: "PayPal 余额支付 · 邮箱走 catch-all/CF KV" },
   { value: "card", label: "纯卡", desc: "Stripe 直接刷卡" },
   { value: "both", label: "双备份", desc: "PayPal + 卡，按 --paypal 切" },
   { value: "gopay", label: "GoPay", desc: "印尼 e-wallet · Plus 专用 · WhatsApp OTP + PIN" },

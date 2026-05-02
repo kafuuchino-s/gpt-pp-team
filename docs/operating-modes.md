@@ -57,7 +57,7 @@ xvfb-run -a python pipeline.py --config CTF-pay/config.paypal.json --paypal \
 ### Member 循环单次时序（约 3 分钟稳态）
 
 1. 挑代理 + 挑子域 + 写临时 `cardw` 配置（跟单 owner pipeline 一致）
-2. `register()` —— Camoufox 过 Turnstile / IMAP OTP（约 2 分钟）
+2. `register()` —— Camoufox 过 Turnstile + CF KV 取 OTP（≈ 1 分钟）
 3. owner 的 Bearer 调 `POST /backend-api/accounts/{team_id}/invites`（< 1 秒）
 4. member 的 Bearer 调 `POST /backend-api/accounts/{team_id}/invites/accept`（< 1 秒）
 5. `card._exchange_refresh_token_with_session` —— Camoufox 重登（email + password + consent）拿 refresh_token（约 30 秒）

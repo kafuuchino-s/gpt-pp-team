@@ -463,7 +463,9 @@ def _provision_openai_auth_via_local_bundle(cfg: dict, fresh_cfg: dict) -> dict:
         billing["currency"] = str(plan_cfg["billing_currency"]).upper()
 
     mail_cfg = ab_cfg.setdefault("mail", {})
-    for key in ("imap_server", "imap_port", "smtp_server", "smtp_port", "email", "auth_code", "catch_all_domain"):
+    # IMAP/SMTP 字段已废弃（OTP 走 CF Email Worker → KV，见 cf_kv_otp_provider）；
+    # 这里只保留 catch_all_domain / catch_all_domains / auto_provision。
+    for key in ("catch_all_domain", "catch_all_domains", "auto_provision"):
         if key in auto_cfg and auto_cfg.get(key) not in (None, ""):
             mail_cfg[key] = auto_cfg.get(key)
     if isinstance(auto_cfg.get("mail"), dict):
@@ -520,13 +522,7 @@ logging.basicConfig(
 )
 
 cfg = Config.from_file(config_path)
-mail = MailProvider(
-    cfg.mail.imap_server,
-    cfg.mail.imap_port,
-    cfg.mail.email,
-    cfg.mail.auth_code,
-    cfg.mail.catch_all_domain,
-)
+mail = MailProvider(cfg.mail.catch_all_domain)
 flow = AuthFlow(cfg)
 login_email = (os.getenv("LOCALAUTH_LOGIN_EMAIL") or "").strip()
 login_password = os.getenv("LOCALAUTH_LOGIN_PASSWORD", "")
@@ -4912,7 +4908,7 @@ def _paypal_full_login(
 
         # 获取 OTP
         _log("      [L6-2] 等待 PayPal OTP ...")
-        otp = _fetch_paypal_otp_via_imap(paypal_cfg, timeout=90)
+        otp = _fetch_paypal_otp(paypal_cfg, timeout=90)
         if not otp:
             raise RuntimeError("PayPal 2FA OTP 获取失败")
         _log(f"      [L6-2] OTP: {otp}")
@@ -4971,63 +4967,25 @@ def _safe_screenshot(page, path: str):
         pass
 
 
-def _fetch_openai_login_otp(imap_server: str, imap_port: int, imap_user: str,
-                             imap_pass: str, target_email: str, timeout: int = 180) -> str:
-    """轮询 IMAP 查找 OpenAI 登录 OTP (格式: "Your ChatGPT/OpenAI code is XXXXXX")"""
-    import imaplib, re
-    import email as email_mod
+def _fetch_openai_login_otp(target_email: str, timeout: int = 180) -> str:
+    """从 CF KV 取 OpenAI 登录 OTP（worker 已替代 IMAP→QQ 转发链路）。
 
-    deadline = time.time() + timeout
-    since = time.time() - 30
-    while time.time() < deadline:
-        try:
-            conn = imaplib.IMAP4_SSL(imap_server, imap_port, timeout=15)
-            conn.login(imap_user, imap_pass)
-            conn.select("INBOX")
-            # 搜最近的 OpenAI 邮件
-            _st, data = conn.search(None, "FROM", "openai")
-            if data and data[0]:
-                for uid in reversed(data[0].split()[-30:]):
-                    _st2, msg_data = conn.fetch(uid, "(RFC822)")
-                    if not msg_data or not msg_data[0]:
-                        continue
-                    msg = email_mod.message_from_bytes(msg_data[0][1])
-                    # 时间过滤
-                    try:
-                        from email.utils import parsedate_to_datetime as _pdt
-                        if _pdt(msg.get("Date", "")).timestamp() < since:
-                            continue
-                    except Exception:
-                        pass
-                    # To 字段必须匹配（catch-all）
-                    to_field = (msg.get("To") or "") + " " + (msg.get("Delivered-To") or "")
-                    if target_email.lower() not in to_field.lower():
-                        continue
-                    subject = msg.get("Subject", "")
-                    # 优先从 Subject 提取
-                    m = re.search(r'code is (\d{6})', subject) or re.search(r'(\d{6})', subject)
-                    if m:
-                        code = m.group(1)
-                        conn.logout()
-                        return code
-                    # 退到正文
-                    for part in (msg.walk() if msg.is_multipart() else [msg]):
-                        if part.get_content_type() not in ("text/plain", "text/html"):
-                            continue
-                        payload = part.get_payload(decode=True)
-                        if not payload:
-                            continue
-                        body_text = payload.decode(part.get_content_charset() or "utf-8", errors="replace")
-                        m = re.search(r'code is (\d{6})', body_text) or re.search(r'\b(\d{6})\b', body_text)
-                        if m:
-                            code = m.group(1)
-                            conn.logout()
-                            return code
-            conn.logout()
-        except Exception as e:
-            _log(f"      [RT-OTP] IMAP 异常: {e}")
-        time.sleep(5)
-    return ""
+    返回空串表示超时或 KV 路径配置缺失，调用方按需 fallback。
+    """
+    try:
+        from cf_kv_otp_provider import CloudflareKVOtpProvider
+    except ImportError as e:
+        _log(f"      [RT-OTP] cf_kv_otp_provider 不可用: {e}")
+        return ""
+    try:
+        provider = CloudflareKVOtpProvider.from_env_or_secrets()
+        return provider.wait_for_otp(target_email, timeout=timeout)
+    except TimeoutError:
+        _log(f"      [RT-OTP] CF KV 等 OTP 超时 {timeout}s")
+        return ""
+    except Exception as e:
+        _log(f"      [RT-OTP] CF KV 取 OTP 异常: {e}")
+        return ""
 
 
 def _exchange_refresh_token_with_session(email: str, password: str, mail_cfg: dict,
@@ -5196,14 +5154,7 @@ def _exchange_refresh_token_with_session(email: str, password: str, mail_cfg: di
                     page.query_selector('input[inputmode="numeric"]')):
                     if not otp_fetched:
                         _log("      [RT] 检测到 OTP 页面，从 IMAP 取验证码 ...")
-                        otp_code = _fetch_openai_login_otp(
-                            imap_server=mail_cfg.get("imap_server", "imap.qq.com"),
-                            imap_port=int(mail_cfg.get("imap_port", 993)),
-                            imap_user=mail_cfg.get("email", ""),
-                            imap_pass=mail_cfg.get("auth_code", ""),
-                            target_email=email,
-                            timeout=180,
-                        )
+                        otp_code = _fetch_openai_login_otp(target_email=email, timeout=180)
                         if not otp_code:
                             _log("      [RT] OTP 获取超时")
                             return ""
@@ -5887,7 +5838,7 @@ def _paypal_browser_authorize(
                 else:
                     # 邮件 OTP 模式：等 IMAP 收码（3 分钟，PayPal 有时要 2 分钟才发）
                     _log("      [B5] 等待 PayPal 邮件 OTP (最长 180s) ...")
-                    otp = _fetch_paypal_otp_via_imap(paypal_cfg, timeout=180)
+                    otp = _fetch_paypal_otp(paypal_cfg, timeout=180)
                     if not otp:
                         _log("      [B5] OTP 首次超时，重发 ...")
                         for sel in ['button:has-text("Resend")', 'button:has-text("重新发送")',
@@ -5898,7 +5849,7 @@ def _paypal_browser_authorize(
                                 _log(f"      [B5] 重发 OTP: {sel}")
                                 break
                         time.sleep(3)
-                        otp = _fetch_paypal_otp_via_imap(paypal_cfg, timeout=120)
+                        otp = _fetch_paypal_otp(paypal_cfg, timeout=120)
                     if not otp:
                         _safe_screenshot(page, "/tmp/paypal_2fa_timeout.png")
                         raise RuntimeError("PayPal 2FA 邮件 OTP 获取超时")
@@ -6550,122 +6501,33 @@ def _handle_paypal_redirect(
 
 
 
-def _fetch_paypal_otp_via_imap(paypal_cfg: dict, timeout: int = 90) -> str:
-    """通过 IMAP 从 QQ 邮箱获取 PayPal 发送的验证码"""
-    imap_server = paypal_cfg.get("imap_server", "imap.qq.com")
-    imap_port = int(paypal_cfg.get("imap_port", 993))
-    imap_email = paypal_cfg.get("imap_email") or paypal_cfg.get("email")
-    imap_auth_code = paypal_cfg.get("imap_auth_code", "")
+def _fetch_paypal_otp(paypal_cfg: dict, timeout: int = 90) -> str:
+    """从 CF KV 取 PayPal 发送的 2FA OTP。
 
-    if not imap_auth_code:
-        _log("      未配置 IMAP 授权码，无法获取 PayPal OTP")
+    前提：PayPal 账户绑定的邮箱（`paypal_cfg["email"]`）已迁移到 catch-all
+    域名，PayPal 发的 OTP 邮件就会落进 otp-relay Worker 写到 KV。
+    若仍是 IMAP 邮箱（QQ 等），KV 里取不到，会超时返回空串。
+    """
+    target = (paypal_cfg.get("email") or "").strip()
+    if not target:
+        _log("      [PayPal OTP] 缺 paypal.email 配置")
         return ""
-
-    _log(f"      IMAP 连接: {imap_server}:{imap_port} ({imap_email})")
-    import imaplib
-    import email as email_mod
-    from email.header import decode_header as _decode_header
-
-    issued_after = time.time() - 30  # 只看最近 30 秒的邮件（点击发送按钮后的新邮件）
-    deadline = time.time() + timeout
-    poll_interval = 5
-
-    while time.time() < deadline:
-        try:
-            conn = imaplib.IMAP4_SSL(imap_server, imap_port, timeout=15)
-            conn.login(imap_email, imap_auth_code)
-            conn.select("INBOX")
-
-            # 搜索来自 PayPal 的未读邮件
-            search_criteria_list = [
-                '(UNSEEN FROM "paypal")',
-                '(FROM "paypal")',
-            ]
-            found_otp = ""
-            for criteria in search_criteria_list:
-                status, data = conn.search(None, criteria)
-                if status != "OK" or not data[0]:
-                    continue
-                uids = data[0].split()
-                # 从最新的开始检查
-                for uid in reversed(uids[-20:]):
-                    status2, msg_data = conn.fetch(uid, "(RFC822)")
-                    if status2 != "OK" or not msg_data[0]:
-                        continue
-                    raw = msg_data[0][1]
-                    msg = email_mod.message_from_bytes(raw)
-
-                    # 检查时间
-                    date_str = msg.get("Date", "")
-                    if date_str:
-                        try:
-                            from email.utils import parsedate_to_datetime as _pdt
-                            msg_time = _pdt(date_str).timestamp()
-                            if msg_time < issued_after:
-                                continue
-                        except Exception:
-                            pass
-
-                    # 提取邮件正文
-                    body = ""
-                    if msg.is_multipart():
-                        for part in msg.walk():
-                            ct = part.get_content_type()
-                            if ct in ("text/plain", "text/html"):
-                                payload = part.get_payload(decode=True)
-                                if payload:
-                                    charset = part.get_content_charset() or "utf-8"
-                                    body += payload.decode(charset, errors="replace")
-                    else:
-                        payload = msg.get_payload(decode=True)
-                        if payload:
-                            charset = msg.get_content_charset() or "utf-8"
-                            body = payload.decode(charset, errors="replace")
-
-                    # 提取 6 位数字验证码，排除邮箱地址自身包含的数字
-                    email_digits = re.sub(r"\D", "", imap_email or "")
-
-                    # 策略1: 先在"验证码"/"code"关键词附近找 6 位数字
-                    for pattern in [
-                        r'(?:验证码|code|Code|CODE)[^\d]{0,20}(\d{6})',
-                        r'(\d{6})[^\d]{0,20}(?:验证码|code|Code)',
-                        r'(?:is|为|：|:)\s*(\d{6})',
-                    ]:
-                        m = re.search(pattern, body)
-                        if m:
-                            candidate = m.group(1)
-                            if candidate not in email_digits and candidate != "000000":
-                                found_otp = candidate
-                                _log(f"      IMAP 找到 PayPal OTP (上下文匹配): {found_otp}")
-                                break
-
-                    # 策略2: 兜底找所有 6 位数字，排除 000000 和邮箱数字
-                    if not found_otp:
-                        codes = re.findall(r'\b(\d{6})\b', body)
-                        for code in codes:
-                            if code in email_digits or code == "000000":
-                                continue
-                            found_otp = code
-                            _log(f"      IMAP 找到 PayPal OTP (兜底): {found_otp}")
-                            break
-
-                    if found_otp:
-                        break
-                if found_otp:
-                    break
-
-            conn.logout()
-            if found_otp:
-                return found_otp
-
-        except Exception as e:
-            _log(f"      IMAP 轮询异常: {e}")
-
-        _log(f"      IMAP 未找到 PayPal OTP，{poll_interval}s 后重试 ...")
-        time.sleep(poll_interval)
-
-    _log("      IMAP 等待 PayPal OTP 超时")
-    return ""
+    try:
+        from cf_kv_otp_provider import CloudflareKVOtpProvider
+    except ImportError as e:
+        _log(f"      [PayPal OTP] cf_kv_otp_provider 不可用: {e}")
+        return ""
+    try:
+        provider = CloudflareKVOtpProvider.from_env_or_secrets()
+        otp = provider.wait_for_otp(target, timeout=timeout)
+        _log(f"      [PayPal OTP] 收到 {otp} (key={target})")
+        return otp
+    except TimeoutError:
+        _log(f"      [PayPal OTP] CF KV 等 OTP 超时 {timeout}s key={target}")
+        return ""
+    except Exception as e:
+        _log(f"      [PayPal OTP] CF KV 取异常: {e}")
+        return ""
 
 
 def confirm_payment(

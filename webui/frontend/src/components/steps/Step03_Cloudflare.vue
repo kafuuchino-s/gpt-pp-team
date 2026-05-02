@@ -20,11 +20,6 @@
           rows="3"
         ></textarea>
       </label>
-      <TermField
-        v-model="form.forward_to"
-        label="Email 转发目标 · forward_to"
-        placeholder="catchall@your-real-mailbox.com"
-      />
     </div>
 
     <div class="step-actions">
@@ -58,7 +53,6 @@ const init = store.answers.cloudflare ?? {};
 const form = ref({
   cf_token: init.cf_token ?? "",
   zone_names: (init.zone_names ?? []) as string[],
-  forward_to: init.forward_to ?? "",
 });
 const zoneText = computed({
   get: () => form.value.zone_names.join("\n"),
