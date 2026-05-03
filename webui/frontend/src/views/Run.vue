@@ -869,7 +869,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.run-root { min-height: 100vh; display: flex; flex-direction: column; }
+.run-root { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
 .wizard-header {
   display: flex;
@@ -894,7 +894,7 @@ onBeforeUnmount(() => {
 .run-body { flex: 1; display: grid; grid-template-columns: 420px minmax(420px, 1fr) minmax(360px, 1fr); gap: 0; min-height: 0; overflow: hidden; }
 .run-controls { padding: 24px; overflow-y: auto; border-right: 1px solid var(--border); }
 .run-inventory { padding: 20px 22px; overflow-y: auto; border-right: 1px solid var(--border); background: var(--bg-base); min-height: 0; }
-.run-logs { display: flex; flex-direction: column; min-height: 0; background: var(--bg-panel); }
+.run-logs { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--bg-panel); }
 @media (max-width: 1280px) {
   .run-body { grid-template-columns: 380px 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .run-controls { grid-row: 1 / span 2; }
